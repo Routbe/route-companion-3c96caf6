@@ -14,6 +14,7 @@ import { getRequestLocale } from "@/lib/locale.functions";
 import { canonicalLinks, profileJsonLd, profileSocialMeta, socialMeta } from "@/lib/social-meta";
 import type { Locale } from "@/lib/i18n";
 import { parseDisplayPrefs, bioForLocale } from "@/lib/profile-display";
+import { useRecordVisit } from "@/hooks/useRecordVisit";
 
 type Row = Record<string, unknown> | null;
 
@@ -38,6 +39,9 @@ function CleanProfile() {
 function HandleProfile({ username }: { username: string }) {
   const handle = canonicalHandle(username);
   const { profile, suspended, loading, error, retry } = useProfileRecord(handle, { free: false });
+
+  // Bezoekstatistiek (privacyvriendelijk, geen persoonsgegevens).
+  useRecordVisit(profile ? handle : null, "root");
 
   useEffect(() => {
     if (profile) document.title = `${profile.display_name || `@${profile.username}`} — ROUT`;

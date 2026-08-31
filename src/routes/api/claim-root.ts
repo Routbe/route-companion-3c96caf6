@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/claim-root")({
 
         // 3. Dubbele claim afvangen.
         const existing = (await sql`
-          select subdomain_tier, root_subdomain_status
+          select username, subdomain_tier, root_subdomain_status
             from public.profiles
            where id = ${userId}
            limit 1
@@ -113,6 +113,7 @@ export const Route = createFileRoute("/api/claim-root")({
         }
         const currentStatus = (current["root_subdomain_status"] as string | null) ?? "none";
         const currentTier = (current["subdomain_tier"] as string | null) ?? "free";
+        const currentUsername = ((current["username"] as string | null) ?? "").toLowerCase();
         if (currentStatus === "pending_dns" || currentStatus === "active") {
           return Response.json(
             {
@@ -125,40 +126,53 @@ export const Route = createFileRoute("/api/claim-root")({
           );
         }
 
-        // 4. Naamruimte bewaken: de root-URL is een tweede adres naar hetzelfde
-        // geverifieerde profiel, dus de naam mag niet van een ánder account zijn.
-        const rootOwners = (await sql`
-          select id from public.profiles
-           where (lower(username) = ${cleanHandle}
-                  or lower(coalesce(subdomain_alias, '')) = ${cleanHandle})
-             and id <> ${userId}
-           limit 1
-        `) as Array<Record<string, unknown>>;
-        let aliasOwners: Array<Record<string, unknown>> = [];
-        try {
-          aliasOwners = (await sql`
-            select user_id from public.alias_profiles
-             where lower(handle) = ${cleanHandle} and user_id <> ${userId}
-             limit 1
-          `) as Array<Record<string, unknown>>;
-        } catch {
-          aliasOwners = [];
-        }
-        if (rootOwners.length || aliasOwners.length) {
+        // 4. Naamruimte bewaken via de gedeelde controle: username,
+        // subdomain_alias en alias_profiles.handle delen één naamruimte.
+        const { isHandleAvailableFor } = await import("@/lib/handle-namespace.server");
+        const free = await isHandleAvailableFor(cleanHandle, userId);
+        if (!free) {
           return Response.json(
             { error: "Deze naam is al in gebruik door een ander account." },
             { status: 409 },
           );
         }
 
-        // 5. Profiel bijwerken.
-        await sql`
-          update public.profiles
-             set subdomain_tier = 'root_lifetime',
-                 root_subdomain_status = 'pending_dns',
-                 subdomain_alias = ${cleanHandle}
-           where id = ${userId}
-        `;
+        // 5. Handle én status in één transactie persisteren. Bij een
+        // naamwijziging schuift `username` mee, zodat rout.be/<naam> en de
+        // root-URL altijd naar dezelfde handle wijzen.
+        const renaming = cleanHandle !== currentUsername;
+        try {
+          await sql.transaction([
+            sql`
+              update public.profiles
+                 set subdomain_tier = 'root_lifetime',
+                     root_subdomain_status = 'pending_dns',
+                     subdomain_alias = ${cleanHandle},
+                     username = case when ${renaming} then ${cleanHandle} else username end
+               where id = ${userId}
+                 -- Race-bescherming: alleen wanneer er nog geen claim liep.
+                 and coalesce(root_subdomain_status, 'none') = 'none'
+            `,
+            sql`
+              insert into public.subdomain_root_claims
+                (user_id, requested_subdomain, admin_mail_status, user_mail_status)
+              values (${userId}, ${requestedSubdomain}, 'pending', 'pending')
+            `,
+          ]);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          const taken = /duplicate|unique|handle_taken/i.test(message);
+          console.error("[claim-root] persist failed:", message);
+          return Response.json(
+            {
+              error: taken
+                ? "Deze naam is al in gebruik door een ander account."
+                : "Aanvraag kon niet opgeslagen worden.",
+            },
+            { status: taken ? 409 : 500 },
+          );
+        }
+
 
         // 6. Brevo-verzending met gedetailleerde foutrapportage.
         let adminMail: { status: MailStatus; error: string | null } = {
@@ -192,20 +206,25 @@ export const Route = createFileRoute("/api/claim-root")({
           ]);
         }
 
-        // 7. Audit log.
+        // 7. Audit log bijwerken (de rij is in stap 5 mee aangemaakt).
         const errorPayload =
           adminMail.error || userMail.error
             ? JSON.stringify({ admin: adminMail.error, user: userMail.error })
             : null;
         try {
           await sql`
-            insert into public.subdomain_root_claims
-              (user_id, requested_subdomain, admin_mail_status, user_mail_status, error_payload)
-            values (${userId}, ${requestedSubdomain}, ${adminMail.status}, ${userMail.status}, ${errorPayload})
+            update public.subdomain_root_claims
+               set admin_mail_status = ${adminMail.status},
+                   user_mail_status = ${userMail.status},
+                   error_payload = ${errorPayload}
+             where user_id = ${userId}
+               and requested_subdomain = ${requestedSubdomain}
+               and admin_mail_status = 'pending'
           `;
         } catch (error) {
-          console.error("[claim-root] audit log insert failed:", error);
+          console.error("[claim-root] audit log update failed:", error);
         }
+
 
         return Response.json({
           success: true,

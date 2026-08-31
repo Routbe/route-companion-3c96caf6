@@ -25,6 +25,12 @@ export type StudioProfile = {
   verifiedLegalName: string | null;
   /** Weergavevoorkeuren (badge, watermerk, achtergrond, typografie). */
   displayPrefs: Record<string, unknown>;
+  /** Extra root-URL (rout.be/<naam>) van een geclaimd rootprofiel. */
+  subdomainAlias: string | null;
+  /** `none` | `pending_dns` | `active` — status van de rootclaim. */
+  rootStatus: string | null;
+  /** Handle van het gratis aliasprofiel (rout.be/u/<handle>). */
+  aliasHandle: string | null;
 };
 
 type Row = Record<string, unknown>;
@@ -46,6 +52,9 @@ function toStudioProfile(row: Row): StudioProfile {
       row["display_prefs"] && typeof row["display_prefs"] === "object"
         ? (row["display_prefs"] as Record<string, unknown>)
         : {},
+    subdomainAlias: (row["subdomain_alias"] as string | null) ?? null,
+    rootStatus: (row["root_subdomain_status"] as string | null) ?? null,
+    aliasHandle: (row["alias_handle"] as string | null) ?? null,
   };
 }
 
@@ -54,13 +63,25 @@ export async function readStudioProfile(userId: string): Promise<StudioProfile |
     select username, display_name, tagline, avatar_url, favicon_url, theme, card_style,
            blocks, verified, status, verified_legal_name,
            -- Tolerant: werkt ook wanneer migratie 18 nog niet is uitgevoerd.
-           to_jsonb(profiles) -> 'display_prefs' as display_prefs
+           to_jsonb(profiles) -> 'display_prefs' as display_prefs,
+           to_jsonb(profiles) ->> 'subdomain_alias' as subdomain_alias,
+           to_jsonb(profiles) ->> 'root_subdomain_status' as root_subdomain_status
       from public.profiles
      where id = ${userId}
      limit 1
   `) as Row[];
   const row = rows[0];
-  return row ? toStudioProfile(row) : null;
+  if (!row) return null;
+  // Het aliasprofiel is een apart record; tolerant wanneer migratie 38 ontbreekt.
+  try {
+    const aliasRows = (await sql`
+      select handle from public.alias_profiles where user_id = ${userId} limit 1
+    `) as Row[];
+    row["alias_handle"] = aliasRows[0]?.["handle"] ?? null;
+  } catch {
+    row["alias_handle"] = null;
+  }
+  return toStudioProfile(row);
 }
 
 export type StudioProfileInput = {
