@@ -13,7 +13,6 @@ create table if not exists public.profile_visits (
   space           text not null default 'alias' check (space in ('root', 'alias')),
   path            text,
   locale          text,
-  referrer_host   text,
   country         text,
   device          text,
   visitor_hash    text,

@@ -17,7 +17,6 @@ export type RecordVisitInput = {
   space: VisitSpace;
   path?: string | null;
   locale?: string | null;
-  referrer?: string | null;
   ip?: string | null;
   userAgent?: string | null;
   country?: string | null;
@@ -36,7 +35,6 @@ async function ensureTable(): Promise<void> {
         space           text not null default 'alias',
         path            text,
         locale          text,
-        referrer_host   text,
         country         text,
         device          text,
         visitor_hash    text,
@@ -74,15 +72,6 @@ function deviceFrom(userAgent: string): string {
   if (/ipad|tablet|android/i.test(userAgent)) return "tablet";
   if (!userAgent) return "unknown";
   return "desktop";
-}
-
-function referrerHost(referrer: string | null | undefined): string | null {
-  if (!referrer) return null;
-  try {
-    return new URL(referrer).hostname.replace(/^www\./, "").slice(0, 120);
-  } catch {
-    return null;
-  }
 }
 
 /** Kortstondige de-duplicatie: één bezoek per bezoeker/handle per 30 minuten. */
@@ -135,12 +124,11 @@ export async function recordVisit(input: RecordVisitInput): Promise<{ recorded: 
 
   await sql`
     insert into public.profile_visits
-      (profile_user_id, handle, space, path, locale, referrer_host, country, device, visitor_hash)
+      (profile_user_id, handle, space, path, locale, country, device, visitor_hash)
     values (
       ${ownerId}, ${handle}, ${input.space === "root" ? "root" : "alias"},
       ${(input.path ?? "").slice(0, 200) || null},
       ${(input.locale ?? "").slice(0, 10).toLowerCase() || null},
-      ${referrerHost(input.referrer)},
       ${(input.country ?? "").slice(0, 2).toUpperCase() || null},
       ${deviceFrom(userAgent)},
       ${visitorHash}
@@ -164,7 +152,6 @@ export type VisitStats = {
     locale: string | null;
     country: string | null;
     device: string | null;
-    referrer: string | null;
     path: string | null;
   }>;
 };
@@ -234,7 +221,7 @@ export async function readVisitStats(
        group by 1 order by 2 desc limit 12
     ` as Promise<Row[]>,
     sql`
-      select created_at, handle, space, locale, country, device, referrer_host, path
+      select created_at, handle, space, locale, country, device, path
         from public.profile_visits
        where profile_user_id = ${userId}
          and created_at >= ${since}
@@ -271,7 +258,6 @@ export async function readVisitStats(
       locale: (r["locale"] as string | null) ?? null,
       country: (r["country"] as string | null) ?? null,
       device: (r["device"] as string | null) ?? null,
-      referrer: (r["referrer_host"] as string | null) ?? null,
       path: (r["path"] as string | null) ?? null,
     })),
   };

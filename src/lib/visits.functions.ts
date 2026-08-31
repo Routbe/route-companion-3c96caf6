@@ -18,7 +18,6 @@ export const recordProfileVisit = createServerFn({ method: "POST" })
       space: VisitSpace;
       path?: string | null;
       locale?: string | null;
-      referrer?: string | null;
     }) => input,
   )
   .handler(async ({ data }) => {
@@ -33,7 +32,6 @@ export const recordProfileVisit = createServerFn({ method: "POST" })
         space: data.space === "root" ? "root" : "alias",
         path: data.path ?? null,
         locale: data.locale ?? null,
-        referrer: data.referrer ?? null,
         ip,
         userAgent: getRequestHeader("user-agent") ?? null,
         country: getRequestHeader("cf-ipcountry") ?? null,

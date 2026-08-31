@@ -191,9 +191,6 @@ export function VisitorPanel({ defaultSpace = "all" }: { defaultSpace?: SpaceFil
                   <span className="text-muted-foreground">{v.country}</span>
                 ) : null}
                 {v.device ? <span className="text-muted-foreground">{v.device}</span> : null}
-                {v.referrer ? (
-                  <span className="truncate text-muted-foreground">← {v.referrer}</span>
-                ) : null}
                 <span className="ml-auto text-muted-foreground">
                   {new Date(v.at).toLocaleString()}
                 </span>
