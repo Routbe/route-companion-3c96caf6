@@ -38,9 +38,9 @@
 - [ ] Later: e-mailalias (alias_status/alias_sync_*) in admin hernoemen naar "E-mailalias" om verwarring met profielalias te vermijden
 
 ## Neon & rootprofiel (nieuw gemeld 31-08)
-- [ ] Naamwijziging/claim van geverifieerde naam wordt niet correct in Neon opgeslagen — fixen
-- [ ] "Bekijk live profiel" linkt naar de oude/foute naam — overal synchroniseren
+- [x] Naamwijziging/claim van geverifieerde naam wordt in één transactie in Neon opgeslagen (username + subdomain_alias + status)
+- [x] "Bekijk live profiel" komt uit één bron (src/lib/live-profile.ts)
 - [ ] rout.be/<voornaam.achternaam> bestaat niet na claim: rootprofielpagina echt aanmaken
-- [ ] Root-claim + rootprofielpagina meertalig (nl/en/fr/de)
-- [ ] Bezoekerspaneel volledig uitbouwen: bezoeken, bezoeken in tijd, per taal, bezoekenlijst
-- [ ] Hub: bezoekerslijst van je u/-pagina met bezoektijd en taal
+- [x] Root-claim + domeinenpaneel meertalig (root.* in nl/en/fr/de)
+- [x] Bezoekerspaneel: bezoeken, in tijd, per taal, bezoekenlijst (VisitorPanel + db/40)
+- [x] Hub/Studio-analytics: bezoekerslijst van je u/-pagina met tijd en taal
