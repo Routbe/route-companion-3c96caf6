@@ -53,6 +53,8 @@ import { FileUploadInput } from "@/components/FileUploadInput";
 import { useAuth } from "@/hooks/useAuth";
 import { useUrlStyle } from "@/hooks/useUrlStyle";
 import { useIdentitySpace } from "@/hooks/useIdentitySpace";
+import { resolveLiveProfile } from "@/lib/live-profile";
+import { VisitorPanel } from "@/components/dashboard/VisitorPanel";
 
 import { effectiveUrlStyle, styledProfilePath, type UrlStyle } from "@/lib/profile-url";
 import {
@@ -163,6 +165,10 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
     setPrefs((p) => ({ ...p, [key]: value }));
   const [blocks, setBlocks] = useState<ProfileBlock[]>([]);
   const [verified, setVerified] = useState(false);
+  // Rootclaim-gegevens: nodig om "Bekijk live profiel" uit één bron te halen.
+  const [subdomainAlias, setSubdomainAlias] = useState<string | null>(null);
+  const [rootStatus, setRootStatus] = useState<string | null>(null);
+  const [aliasHandle, setAliasHandle] = useState<string | null>(null);
   const { space: identitySpace, select: selectIdentitySpace } = useIdentitySpace(verified);
 
   const [legalName, setLegalName] = useState<string | null>(null);
@@ -196,6 +202,14 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
           setHandle(data.username ?? "");
           setClaimed(data.username ?? null);
           setVerified(Boolean(data.verified) && data.status === "active");
+          const rootData = data as Partial<{
+            subdomainAlias: string | null;
+            rootStatus: string | null;
+            aliasHandle: string | null;
+          }>;
+          setSubdomainAlias(rootData.subdomainAlias ?? null);
+          setRootStatus(rootData.rootStatus ?? null);
+          setAliasHandle(rootData.aliasHandle ?? null);
           setLegalName(data.verifiedLegalName || null);
           setDisplayName(data.displayName ?? "");
           setTagline(data.tagline ?? "");
@@ -299,7 +313,18 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
             : rawUrlStyle,
         verified,
       );
-  const publicPath = styledProfilePath(claimed ?? "", urlStyle);
+  /**
+   * Eén bron van waarheid voor de live URL: de actieve rootnaam wanneer de
+   * claim actief is, anders altijd `/u/<alias>`. Nooit uit lokale state.
+   */
+  const live = resolveLiveProfile({
+    username: claimed,
+    subdomainAlias,
+    rootStatus,
+    aliasHandle,
+    verified,
+  });
+  const publicPath = live.path ?? styledProfilePath(claimed ?? "", urlStyle);
 
   const visibleTabs = useMemo(() => TABS.filter((t) => !t.verifiedOnly || verified), [verified]);
   // Losing verification (or loading it late) must never leave the studio on a
@@ -571,14 +596,13 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
             rel="noopener noreferrer"
             className="min-w-0 truncate font-mono text-xs font-medium underline-offset-4 hover:underline sm:text-sm"
           >
-            {host}
-            {styledProfilePath(normalized || "handle", urlStyle)}
+            {live.label ?? `${host}${styledProfilePath(normalized || "handle", urlStyle)}`}
           </a>
           <button
             type="button"
             onClick={() => {
               void navigator.clipboard.writeText(
-                `https://rout.be${styledProfilePath(normalized || "handle", urlStyle)}`,
+                live.url ?? `https://rout.be${styledProfilePath(normalized || "handle", urlStyle)}`,
               );
               toast.success("Link gekopieerd!");
             }}
@@ -774,6 +798,9 @@ export function ProfileEditor({ variant = "verified" }: { variant?: ProfileVaria
             </Accordion>
           )}
 
+          {tab === "analytics" && (
+            <VisitorPanel defaultSpace={alias ? "alias" : "all"} />
+          )}
           {tab === "analytics" && (
             <section className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">

@@ -11,6 +11,7 @@ import { canonicalLinks, profileJsonLd, profileSocialMeta, socialMeta } from "@/
 import type { Locale } from "@/lib/i18n";
 import { parseDisplayPrefs, bioForLocale } from "@/lib/profile-display";
 import { sanitizeHandleInput } from "@/lib/validations/sanitizeHandle";
+import { useRecordVisit } from "@/hooks/useRecordVisit";
 
 type Row = Record<string, unknown> | null;
 
@@ -19,6 +20,9 @@ function FreeProfile() {
   // Normalise: strip a leading @ so /u/john and /u/@john resolve identically.
   const handle = username.replace(/^@/, "").toLowerCase();
   const { profile, suspended, loading, error, retry } = useProfileRecord(handle, { free: true });
+
+  // Bezoekstatistiek (privacyvriendelijk, geen persoonsgegevens).
+  useRecordVisit(profile ? handle : null, "alias");
 
   useEffect(() => {
     if (profile) document.title = `${profile.display_name || `@${profile.username}`} — ROUT`;

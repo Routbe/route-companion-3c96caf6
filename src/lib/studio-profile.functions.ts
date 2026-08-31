@@ -24,6 +24,9 @@ export type StudioProfileDTO = {
   status: string;
   verifiedLegalName: string | null;
   displayPrefs: Record<string, Json>;
+  subdomainAlias: string | null;
+  rootStatus: string | null;
+  aliasHandle: string | null;
 };
 
 export const getStudioProfile = createServerFn({ method: "GET" })
