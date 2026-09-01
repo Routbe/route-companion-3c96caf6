@@ -5,12 +5,49 @@
  */
 
 export type WallpaperType = "theme" | "solid" | "gradient" | "image";
-export type ButtonVariant = "fill" | "outline" | "glass" | "hard";
-export type ButtonRadius = "pill" | "rounded" | "sharp";
-export type FontPairing = "modern" | "serif" | "mono" | "display";
+export type ButtonVariant =
+  | "fill"
+  | "outline"
+  | "glass"
+  | "hard"
+  | "soft"
+  | "gradient"
+  | "neon"
+  | "ghost";
+export type ButtonRadius = "pill" | "rounded" | "sharp" | "soft" | "xl";
+export type ButtonSize = "sm" | "md" | "lg" | "xl";
+/** Extra hover-/rustanimatie op de linkknoppen. */
+export type ButtonEffect = "none" | "lift" | "glow" | "press" | "shine" | "pulse";
+export type FontPairing =
+  | "modern"
+  | "serif"
+  | "mono"
+  | "display"
+  | "editorial"
+  | "geometric"
+  | "brutal"
+  | "luxe"
+  | "handwritten"
+  | "futuristic"
+  | "classic"
+  | "condensed";
 export type SocialPosition = "top" | "bottom" | "footer";
 /** Vormgeving van de voettekst onderaan het profiel. */
-export type FooterStyle = "plain" | "divider" | "card" | "glow" | "stamp" | "ticker";
+export type FooterStyle =
+  | "plain"
+  | "divider"
+  | "card"
+  | "glow"
+  | "stamp"
+  | "ticker"
+  | "grass"
+  | "wave"
+  | "neonbar"
+  | "tape"
+  | "gradient"
+  | "dotted";
+/** Uitlijning van de avatar onder de banner. */
+export type AvatarAlign = "left" | "center" | "right";
 
 export interface ProfileDesignPrefs {
   /** Custom mode: pas als dit aanstaat overschrijven de knoppen hieronder het preset. */
@@ -26,12 +63,23 @@ export interface ProfileDesignPrefs {
   wallpaperOverlay: number;
   buttonVariant: ButtonVariant;
   buttonRadius: ButtonRadius;
+  buttonSize: ButtonSize;
+  buttonEffect: ButtonEffect;
   buttonColor: string | null;
   buttonTextColor: string | null;
   fontPairing: FontPairing;
   /** Basis-lettergrootte in procenten (85–125). */
   fontScale: number;
+  /** Titelgrootte in procenten (80–180). */
+  titleScale: number;
   titleColor: string | null;
+  /** Hoogte van de banner in px (0 = automatisch). */
+  bannerHeight: number;
+  /** Diameter van de avatar in px. */
+  avatarSize: number;
+  avatarAlign: AvatarAlign;
+  /** Hoeveel de avatar over de banner schuift (px). */
+  avatarOverlap: number;
   footerTagline: string | null;
   /** Stijl van het footerblok. */
   footerStyle: FooterStyle;
@@ -49,7 +97,51 @@ export const FOOTER_STYLES: { id: FooterStyle; label: string; hint: string }[] =
   { id: "glow", label: "Gloed", hint: "Accentgloed" },
   { id: "stamp", label: "Stempel", hint: "Uppercase kader" },
   { id: "ticker", label: "Ticker", hint: "Rollende tekst" },
+  { id: "grass", label: "Gras", hint: "Grasrand onderaan" },
+  { id: "wave", label: "Golf", hint: "Golvende rand" },
+  { id: "neonbar", label: "Neonbalk", hint: "Oplichtende balk" },
+  { id: "tape", label: "Plakband", hint: "Schuin tapestrookje" },
+  { id: "gradient", label: "Verloop", hint: "Zacht kleurverloop" },
+  { id: "dotted", label: "Stippellijn", hint: "Gestippelde rand" },
 ];
+
+/** Footerstijlen met een decoratieve SVG-laag boven het blok. */
+export const FOOTER_DECORATIONS: FooterStyle[] = ["grass", "wave"];
+
+export const BUTTON_SIZES: { id: ButtonSize; label: string }[] = [
+  { id: "sm", label: "Compact" },
+  { id: "md", label: "Normaal" },
+  { id: "lg", label: "Groot" },
+  { id: "xl", label: "Extra groot" },
+];
+
+export const BUTTON_EFFECTS: { id: ButtonEffect; label: string; hint: string }[] = [
+  { id: "none", label: "Geen", hint: "Statisch" },
+  { id: "lift", label: "Optillen", hint: "Zweeft omhoog bij hover" },
+  { id: "glow", label: "Gloed", hint: "Accentgloed bij hover" },
+  { id: "press", label: "Indrukken", hint: "Zakt in bij klik" },
+  { id: "shine", label: "Glans", hint: "Lichtstreep glijdt over" },
+  { id: "pulse", label: "Puls", hint: "Zachte ademhaling" },
+];
+
+/** Hoogte/typografie per knopmaat. */
+export const buttonSizeStyle = (size: ButtonSize): Record<string, string | number> => {
+  switch (size) {
+    case "sm":
+      return { minHeight: 40, padding: "8px 14px", fontSize: "0.8125rem" };
+    case "lg":
+      return { minHeight: 60, padding: "16px 20px", fontSize: "0.975rem" };
+    case "xl":
+      return { minHeight: 72, padding: "20px 24px", fontSize: "1.05rem" };
+    default:
+      return { minHeight: 48, padding: "12px 16px", fontSize: "0.875rem" };
+  }
+};
+
+/** Tailwind/CSS-klasse voor het hover-effect (gedefinieerd in styles.css). */
+export const buttonEffectClass = (effect: ButtonEffect): string =>
+  effect === "none" ? "" : `rout-btn-${effect}`;
+
 
 /** CSS voor het footerblok, afgeleid van stijl + accentkleur. */
 export function footerBlockStyle(
@@ -91,6 +183,34 @@ export function footerBlockStyle(
         width: "100%",
         overflow: "hidden",
       };
+    case "grass":
+      return { paddingTop: 28, width: "100%", position: "relative" };
+    case "wave":
+      return { paddingTop: 34, width: "100%", position: "relative" };
+    case "neonbar":
+      return {
+        borderTop: `2px solid ${a}`,
+        paddingTop: 16,
+        width: "100%",
+        boxShadow: `0 -14px 32px -18px ${a}`,
+      };
+    case "tape":
+      return {
+        background: `color-mix(in oklab, ${a} 22%, transparent)`,
+        border: `1px dashed ${a}`,
+        padding: "10px 22px",
+        transform: "rotate(-1.4deg)",
+        borderRadius: 4,
+      };
+    case "gradient":
+      return {
+        width: "100%",
+        paddingTop: 20,
+        backgroundImage: `linear-gradient(180deg, transparent, color-mix(in oklab, ${a} 26%, transparent))`,
+        borderRadius: 20,
+      };
+    case "dotted":
+      return { borderTop: `2px dotted ${a}`, paddingTop: 16, width: "100%" };
     default:
       return {};
   }
@@ -106,17 +226,25 @@ export const DEFAULT_DESIGN_PREFS: ProfileDesignPrefs = {
   wallpaperOverlay: 40,
   buttonVariant: "fill",
   buttonRadius: "rounded",
+  buttonSize: "md",
+  buttonEffect: "none",
   buttonColor: null,
   buttonTextColor: null,
   fontPairing: "modern",
   fontScale: 100,
+  titleScale: 100,
   titleColor: null,
+  bannerHeight: 128,
+  avatarSize: 80,
+  avatarAlign: "center",
+  avatarOverlap: 40,
   footerTagline: null,
   footerStyle: "plain",
   footerAccent: null,
   showRoutBadge: true,
   socialPosition: "top",
 };
+
 
 /* ------------------------------------------------------------ presets */
 
@@ -240,10 +368,129 @@ export const GRADIENT_PRESETS: { id: string; label: string; css: string }[] = [
     label: "Velvet Mocha",
     css: "radial-gradient(45rem 30rem at 50% 0%, #c0845766 0%, transparent 60%), linear-gradient(180deg, #1b1310 0%, #0d0806 100%)",
   },
+  {
+    id: "aurora",
+    label: "Aurora",
+    css: "radial-gradient(40rem 26rem at 20% 0%, #22d3ee55 0%, transparent 62%), radial-gradient(42rem 28rem at 80% 20%, #4ade8055 0%, transparent 60%), radial-gradient(36rem 24rem at 50% 90%, #a78bfa44 0%, transparent 62%), #06070f",
+  },
+  {
+    id: "peach",
+    label: "Peach Cream",
+    css: "linear-gradient(170deg, #ffe7d1 0%, #ffd0c2 45%, #fbb1a4 100%)",
+  },
+  {
+    id: "midnight",
+    label: "Midnight Indigo",
+    css: "radial-gradient(50rem 32rem at 30% 0%, #4f46e555 0%, transparent 60%), linear-gradient(180deg, #0a0a1a 0%, #141432 100%)",
+  },
+  {
+    id: "sakura",
+    label: "Sakura",
+    css: "radial-gradient(38rem 26rem at 15% 5%, #fbcfe8 0%, transparent 60%), linear-gradient(180deg, #fff5f8 0%, #f8d8e4 100%)",
+  },
+  {
+    id: "sunsetblaze",
+    label: "Sunset Blaze",
+    css: "linear-gradient(150deg, #ff6b35 0%, #e84393 55%, #6c5ce7 100%)",
+  },
+  {
+    id: "matcha",
+    label: "Matcha",
+    css: "radial-gradient(42rem 28rem at 80% 0%, #a7f3d0 0%, transparent 62%), linear-gradient(180deg, #f2f7ef 0%, #dbe9d5 100%)",
+  },
+  {
+    id: "noirgold",
+    label: "Noir & Gold",
+    css: "radial-gradient(44rem 30rem at 50% 0%, #c9a84c44 0%, transparent 60%), linear-gradient(180deg, #0d0d0d 0%, #050505 100%)",
+  },
+  {
+    id: "ocean",
+    label: "Ocean Deep",
+    css: "radial-gradient(46rem 30rem at 20% 10%, #2d8a9e66 0%, transparent 62%), linear-gradient(180deg, #0c2340 0%, #061524 100%)",
+  },
+  {
+    id: "candy",
+    label: "Candy Pop",
+    css: "linear-gradient(160deg, #c4b5fd 0%, #67e8f9 50%, #fecaca 100%)",
+  },
+  {
+    id: "carbon",
+    label: "Carbon",
+    css: "repeating-linear-gradient(45deg, #141414 0 6px, #101010 6px 12px)",
+  },
+  {
+    id: "steel",
+    label: "Brushed Steel",
+    css: "linear-gradient(180deg, #3a4553 0%, #1f2733 60%, #141a22 100%)",
+  },
 ];
 
 export const gradientCss = (id: string) =>
   (GRADIENT_PRESETS.find((g) => g.id === id) ?? GRADIENT_PRESETS[0]!).css;
+
+/** Snelkeuze-palet voor alle kleurvelden in de studio. */
+export const COLOR_SWATCHES: { label: string; colors: string[] }[] = [
+  {
+    label: "Neutraal",
+    colors: [
+      "#000000",
+      "#0d0d0d",
+      "#1a1a1a",
+      "#2d2d2d",
+      "#4a4a4a",
+      "#718096",
+      "#a0aec0",
+      "#e2e8f0",
+      "#f5f3ee",
+      "#ffffff",
+    ],
+  },
+  {
+    label: "Warm",
+    colors: [
+      "#7f1d1d",
+      "#b91c1c",
+      "#ef4444",
+      "#f97316",
+      "#f59e0b",
+      "#fcd34d",
+      "#e85d3a",
+      "#c4654a",
+      "#a0522d",
+      "#8b7355",
+    ],
+  },
+  {
+    label: "Koel",
+    colors: [
+      "#0c2340",
+      "#1e3a5f",
+      "#2563eb",
+      "#3b82f6",
+      "#22d3ee",
+      "#5cbdb9",
+      "#0d7a5f",
+      "#22c55e",
+      "#a7f3d0",
+      "#e0f2fe",
+    ],
+  },
+  {
+    label: "Luxe",
+    colors: [
+      "#c9a84c",
+      "#f0d78c",
+      "#e8c07a",
+      "#8a6a24",
+      "#4f46e5",
+      "#a855f7",
+      "#c9a0dc",
+      "#e88aab",
+      "#064e3b",
+      "#1b1310",
+    ],
+  },
+];
 
 /* -------------------------------------------------------- typography */
 
@@ -282,7 +529,64 @@ export const FONT_PAIRINGS: {
     heading: "'Cabinet Grotesk', 'Space Grotesk', ui-sans-serif, sans-serif",
     body: "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
   },
+  {
+    id: "editorial",
+    label: "Editorial",
+    note: "Instrument Serif + Work Sans",
+    heading: "'Instrument Serif', ui-serif, Georgia, serif",
+    body: "'Work Sans', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "geometric",
+    label: "Geometrisch",
+    note: "Outfit + Figtree",
+    heading: "'Outfit', ui-sans-serif, system-ui, sans-serif",
+    body: "'Figtree', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "brutal",
+    label: "Brutalist",
+    note: "Archivo Black + Hind",
+    heading: "'Archivo Black', 'Arial Black', ui-sans-serif, sans-serif",
+    body: "'Hind', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "luxe",
+    label: "Luxe Fashion",
+    note: "Cormorant + Karla",
+    heading: "'Cormorant Garamond', ui-serif, Georgia, serif",
+    body: "'Karla', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "handwritten",
+    label: "Handgeschreven",
+    note: "Caveat + Nunito Sans",
+    heading: "'Caveat', 'Segoe Script', cursive",
+    body: "'Nunito Sans', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "futuristic",
+    label: "Futuristisch",
+    note: "Orbitron + Rajdhani",
+    heading: "'Orbitron', 'Space Grotesk', ui-sans-serif, sans-serif",
+    body: "'Rajdhani', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "classic",
+    label: "Klassiek",
+    note: "Libre Baskerville + IBM Plex Sans",
+    heading: "'Libre Baskerville', ui-serif, Georgia, serif",
+    body: "'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif",
+  },
+  {
+    id: "condensed",
+    label: "Condensed Impact",
+    note: "Bebas Neue + Barlow",
+    heading: "'Bebas Neue', 'Oswald', ui-sans-serif, sans-serif",
+    body: "'Barlow', ui-sans-serif, system-ui, sans-serif",
+  },
 ];
+
 
 export const fontPairingOf = (id: FontPairing) =>
   FONT_PAIRINGS.find((f) => f.id === id) ?? FONT_PAIRINGS[0]!;
