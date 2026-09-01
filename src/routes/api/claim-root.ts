@@ -141,6 +141,13 @@ export const Route = createFileRoute("/api/claim-root")({
         // naamwijziging schuift `username` mee, zodat rout.be/<naam> en de
         // root-URL altijd naar dezelfde handle wijzen.
         const renaming = cleanHandle !== currentUsername;
+        // De gratis handle mag nooit verdwijnen: voordat `username` naar de
+        // geverifieerde naam schuift, verhuist de oude naam naar het gratis
+        // aliasprofiel (rout.be/u/<oude naam>).
+        if (renaming && currentUsername) {
+          const { preserveFreeAliasHandle } = await import("@/lib/alias-profile.server");
+          await preserveFreeAliasHandle(userId, currentUsername);
+        }
         try {
           await sql.transaction([
             sql`

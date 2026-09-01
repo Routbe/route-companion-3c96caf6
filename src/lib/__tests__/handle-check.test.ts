@@ -14,8 +14,11 @@ describe("handle rules", () => {
     expect(handleRuleMessage("janedoe", { tier: "free" })).toBeTruthy();
     expect(handleRuleMessage("jona1", { tier: "free" })).toBeTruthy();
   });
-  it("rejects 4+ digit suffixes", () => {
+  it("allows long digit suffixes but needs 3+ letters", () => {
     expect(hasValidDigitSuffix("jona48")).toBe(true);
-    expect(hasValidDigitSuffix("jona12345")).toBe(false);
+    expect(hasValidDigitSuffix("jona12345")).toBe(true);
+    expect(hasValidDigitSuffix("jo12345")).toBe(false);
+    expect(handleRuleMessage("jo12345", { tier: "free" })).toBeTruthy();
+    expect(handleRuleMessage("jona12345", { tier: "free" })).toBeNull();
   });
 });

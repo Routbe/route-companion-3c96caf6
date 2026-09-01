@@ -96,12 +96,14 @@ export function withDigitSuffixes(handle: string, count = 3): string[] {
   return out;
 }
 
-/** Free members: 2–3 trailing digits are allowed, nothing longer. */
+/**
+ * Free members may append as many digits as they like — de enige eis is dat er
+ * minstens drie letters overblijven, zodat `jona12345` mag en `j1234` niet.
+ */
 export function hasValidDigitSuffix(handle: string): boolean {
   const clean = normalizeHandleInput(handle);
-  const match = clean.match(/(\d+)$/);
-  if (!match) return true;
-  return match[1]!.length <= 3;
+  if (!/\d/.test(clean)) return true;
+  return (clean.match(/[a-z]/g) ?? []).length >= 3;
 }
 
 /**

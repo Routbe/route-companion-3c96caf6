@@ -223,3 +223,48 @@ export async function readPublicAliasProfile(rawHandle: string) {
     social_links: [],
   } as Row;
 }
+
+/**
+ * Bewaart de gratis handle wanneer een account naar een geverifieerde
+ * roothandle verhuist.
+ *
+ * Zonder dit verdween `rout.be/u/<oude naam>` zodra `profiles.username`
+ * werd hernoemd naar de geclaimde/geverifieerde naam. De oude (gratis) naam
+ * blijft nu bestaan als aliasprofiel, zodat een account altijd twee adressen
+ * houdt: `rout.be/u/user12` (gratis) en `rout.be/voornaam.achternaam`
+ * (geverifieerd).
+ *
+ * Idempotent: bestaat er al een aliasprofiel, dan blijft dat ongemoeid.
+ */
+export async function preserveFreeAliasHandle(
+  userId: string,
+  previousHandle: string | null | undefined,
+): Promise<{ ok: boolean; handle: string | null }> {
+  const handle = normalizeHandleForStorage(String(previousHandle ?? ""));
+  if (!handle) return { ok: false, handle: null };
+  if (isReservedHandle(handle)) return { ok: false, handle: null };
+
+  try {
+    await ensureAliasTable();
+
+    const mine = (await sql`
+      select handle from public.alias_profiles where user_id = ${userId} limit 1
+    `) as Row[];
+    if (mine[0]) return { ok: true, handle: (mine[0]["handle"] as string | null) ?? null };
+
+    const taken = (await sql`
+      select user_id from public.alias_profiles
+       where lower(handle) = ${handle} and user_id <> ${userId} limit 1
+    `) as Row[];
+    if (taken[0]) return { ok: false, handle: null };
+
+    await sql`
+      insert into public.alias_profiles (user_id, handle, updated_at)
+      values (${userId}, ${handle}, now())
+      on conflict (user_id) do nothing
+    `;
+    return { ok: true, handle };
+  } catch {
+    return { ok: false, handle: null };
+  }
+}
