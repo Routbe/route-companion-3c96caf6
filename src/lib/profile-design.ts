@@ -766,21 +766,49 @@ export function normalizeDesignPrefs(r: Record<string, unknown>): ProfileDesignP
     wallpaperImageUrl: httpsUrl(r["wallpaperImageUrl"]),
     wallpaperBlur: num(r["wallpaperBlur"], 0, 24, 0),
     wallpaperOverlay: num(r["wallpaperOverlay"], 0, 90, 40),
-    buttonVariant: pick(r["buttonVariant"], ["fill", "outline", "glass", "hard"] as const, "fill"),
-    buttonRadius: pick(r["buttonRadius"], ["pill", "rounded", "sharp"] as const, "rounded"),
+    buttonVariant: pick(
+      r["buttonVariant"],
+      BUTTON_VARIANTS.map((v) => v.id),
+      "fill",
+    ),
+    buttonRadius: pick(
+      r["buttonRadius"],
+      BUTTON_RADII.map((v) => v.id),
+      "rounded",
+    ),
+    buttonSize: pick(
+      r["buttonSize"],
+      BUTTON_SIZES.map((v) => v.id),
+      "md",
+    ),
+    buttonEffect: pick(
+      r["buttonEffect"],
+      BUTTON_EFFECTS.map((v) => v.id),
+      "none",
+    ),
     buttonColor: hex(r["buttonColor"]),
     buttonTextColor: hex(r["buttonTextColor"]),
-    fontPairing: pick(r["fontPairing"], ["modern", "serif", "mono", "display"] as const, "modern"),
+    fontPairing: pick(
+      r["fontPairing"],
+      FONT_PAIRINGS.map((f) => f.id),
+      "modern",
+    ),
     fontScale: num(r["fontScale"], 85, 125, 100),
+    titleScale: num(r["titleScale"], 80, 180, 100),
     titleColor: hex(r["titleColor"]),
+    bannerHeight: num(r["bannerHeight"], 64, 360, 128),
+    avatarSize: num(r["avatarSize"], 56, 160, 80),
+    avatarAlign: pick(r["avatarAlign"], ["left", "center", "right"] as const, "center"),
+    avatarOverlap: num(r["avatarOverlap"], 0, 90, 40),
     footerTagline: text(r["footerTagline"], 80),
     footerStyle: pick(
       r["footerStyle"],
-      ["plain", "divider", "card", "glow", "stamp", "ticker"] as const,
+      FOOTER_STYLES.map((f) => f.id),
       "plain",
     ),
     footerAccent: hex(r["footerAccent"]),
     showRoutBadge: r["showRoutBadge"] === undefined ? true : Boolean(r["showRoutBadge"]),
     socialPosition: pick(r["socialPosition"], ["top", "bottom", "footer"] as const, "top"),
+
   };
 }
