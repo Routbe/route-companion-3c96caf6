@@ -359,6 +359,13 @@ export async function changeHandle(opts: {
     return { ok: false as const, reason: "Already taken by another account." };
   }
 
+  // Behoud de gratis handle: bij een naamwijziging naar de geverifieerde
+  // handle blijft de oude naam bestaan als aliasprofiel (rout.be/u/<naam>).
+  if (profile.username && profile.username.toLowerCase() !== handle) {
+    const { preserveFreeAliasHandle } = await import("@/lib/alias-profile.server");
+    await preserveFreeAliasHandle(opts.userId, profile.username);
+  }
+
   const { error } = await dbAdmin
     .from("profiles")
     .update({ username: handle, handle_grant: grant })
