@@ -596,13 +596,20 @@ export const BUTTON_VARIANTS: { id: ButtonVariant; label: string; note: string }
   { id: "outline", label: "Outline", note: "Transparant met randlijn" },
   { id: "glass", label: "Glassmorphism", note: "Doorschijnend met blur" },
   { id: "hard", label: "Hard Shadow", note: "Retro slagschaduw" },
+  { id: "soft", label: "Soft Shadow", note: "Zachte diepteschaduw" },
+  { id: "gradient", label: "Gradient", note: "Kleurverloop over de knop" },
+  { id: "neon", label: "Neon", note: "Oplichtende rand" },
+  { id: "ghost", label: "Ghost", note: "Alleen tekst, subtiele hover" },
 ];
 
 export const BUTTON_RADII: { id: ButtonRadius; label: string; px: number }[] = [
   { id: "pill", label: "Pill", px: 999 },
+  { id: "xl", label: "Extra rond", px: 24 },
   { id: "rounded", label: "Rounded", px: 14 },
+  { id: "soft", label: "Zacht", px: 8 },
   { id: "sharp", label: "Sharp", px: 0 },
 ];
+
 
 export const SOCIAL_POSITIONS: { id: SocialPosition; label: string }[] = [
   { id: "top", label: "Bovenaan profiel" },
