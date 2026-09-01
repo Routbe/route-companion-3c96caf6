@@ -14,6 +14,7 @@ export type BackgroundStyle = "solid" | "grid" | "gradient" | "dots" | "mesh" | 
 export type Typography = "sans" | "serif" | "mono";
 /** 24 avatarkaders — definities leven in `@/lib/avatar-frames`. */
 export type { AvatarFrame } from "./avatar-frames";
+export type { AvatarDecoration, PresenceStatus } from "./avatar-decorations";
 export {
   AVATAR_FRAME_DEFS,
   AVATAR_FRAME_CATEGORIES,
@@ -21,6 +22,12 @@ export {
   avatarFrameStyle,
 } from "./avatar-frames";
 import { normalizeAvatarFrame, type AvatarFrame } from "./avatar-frames";
+import {
+  normalizeAvatarDecoration,
+  normalizePresence,
+  type AvatarDecoration,
+  type PresenceStatus,
+} from "./avatar-decorations";
 import { normalizeVisitEffect, type VisitEffect } from "./visit-effects";
 import { normalizeFavorites, type ProfileFavorite } from "./favorites";
 import {
@@ -71,6 +78,10 @@ export interface ProfileDisplayPrefs {
   backgroundStyle: BackgroundStyle;
   typography: Typography;
   avatarFrame: AvatarFrame;
+  /** Discord-achtige decoratie bovenop de avatar. */
+  avatarDecoration: AvatarDecoration;
+  /** Statusbolletje op de avatar (online, afwezig, focus …). */
+  presence: PresenceStatus;
   bannerStyle: BannerStyle;
   bannerImageUrl: string | null;
   /** Kleurenpaar voor de gradient-banner. */
@@ -119,6 +130,8 @@ export const DEFAULT_DISPLAY_PREFS: ProfileDisplayPrefs = {
   backgroundStyle: "solid",
   typography: "sans",
   avatarFrame: "none",
+  avatarDecoration: "none",
+  presence: "none",
   bannerStyle: "none",
   bannerImageUrl: null,
   bannerFrom: null,
@@ -143,6 +156,12 @@ export const DEFAULT_DISPLAY_PREFS: ProfileDisplayPrefs = {
 };
 
 export { AVATAR_FRAME_DEFS as AVATAR_FRAMES } from "./avatar-frames";
+export {
+  AVATAR_DECORATION_DEFS,
+  DECORATION_CATEGORIES,
+  PRESENCE_DEFS,
+  avatarDecorationLabel,
+} from "./avatar-decorations";
 
 export const BANNER_STYLES: { id: BannerStyle; label: string }[] = [
   { id: "none", label: "Geen banner" },
@@ -243,6 +262,8 @@ export function parseDisplayPrefs(raw: unknown): ProfileDisplayPrefs {
     ),
     typography: oneOf(r["typography"], ["sans", "serif", "mono"] as const, "sans"),
     avatarFrame: normalizeAvatarFrame(r["avatarFrame"]),
+    avatarDecoration: normalizeAvatarDecoration(r["avatarDecoration"]),
+    presence: normalizePresence(r["presence"]),
     bannerStyle: oneOf(r["bannerStyle"], ["none", "gradient", "image"] as const, "none"),
     bannerImageUrl: urlOrNull(r["bannerImageUrl"]),
     bannerFrom: colorOrNull(r["bannerFrom"]),

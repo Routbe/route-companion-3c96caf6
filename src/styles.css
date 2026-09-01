@@ -737,3 +737,89 @@ select:focus-visible {
 .rout-frame-shimmer {
   animation: rout-frame-shimmer 6s ease-in-out infinite;
 }
+
+
+/* --- Avatardecoraties & footer (Discord-achtige extra's) ------------------ */
+@keyframes rout-deco-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6%);
+  }
+}
+@keyframes rout-deco-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes rout-deco-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8%) rotate(2deg);
+  }
+}
+@keyframes rout-deco-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes rout-deco-scan {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes rout-footer-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.rout-deco-bob {
+  animation: rout-deco-bob 3.2s ease-in-out infinite;
+}
+.rout-deco-twinkle {
+  animation: rout-deco-twinkle 2.2s ease-in-out infinite;
+}
+.rout-deco-float {
+  animation: rout-deco-float 4s ease-in-out infinite;
+}
+.rout-deco-flicker {
+  animation: rout-frame-flicker 1.6s ease-in-out infinite;
+}
+.rout-deco-scan {
+  animation: rout-deco-scan 2s ease-in-out infinite;
+}
+.rout-deco-orbit .rout-deco-orbit-inner {
+  transform-origin: 50% 50%;
+  animation: rout-deco-orbit 18s linear infinite;
+}
+.rout-footer-ticker {
+  display: inline-block;
+  animation: rout-footer-ticker 18s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rout-deco-bob,
+  .rout-deco-twinkle,
+  .rout-deco-float,
+  .rout-deco-flicker,
+  .rout-deco-scan,
+  .rout-footer-ticker,
+  .rout-deco-orbit .rout-deco-orbit-inner {
+    animation: none;
+  }
+}

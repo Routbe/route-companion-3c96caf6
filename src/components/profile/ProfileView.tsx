@@ -43,6 +43,7 @@ import {
   BIO_LOCALE_LABEL,
   type BioLocale,
   designButtonStyle,
+  footerBlockStyle,
   fontPairingOf,
   wallpaperOverlayStyle,
   wallpaperStyle,
@@ -199,7 +200,12 @@ export function ProfileView({
       <div
         className={`relative mx-auto flex w-full flex-col items-center ${wide ? "max-w-3xl" : "max-w-md"}`}
       >
-        <AvatarFrameWrapper frame={prefs.avatarFrame} theme={t}>
+        <AvatarFrameWrapper
+          frame={prefs.avatarFrame}
+          theme={t}
+          decoration={prefs.avatarDecoration}
+          presence={prefs.presence}
+        >
           {profile.avatar_url ? (
             <img
               src={profile.avatar_url}
@@ -472,13 +478,33 @@ export function ProfileView({
 
         {prefs.socialPosition === "bottom" && socialRow}
 
-        <footer className="mt-10 flex flex-col items-center gap-2">
+        <footer
+          className="mt-10 flex w-full flex-col items-center gap-2"
+          style={footerBlockStyle(prefs.footerStyle, prefs.footerAccent, {
+            border: t.border,
+            card: t.card,
+            muted: t.muted,
+          })}
+        >
           {prefs.socialPosition === "footer" && socialRow}
-          {prefs.footerTagline && (
-            <p className="text-center text-[11px]" style={{ color: t.muted }}>
-              {prefs.footerTagline}
-            </p>
-          )}
+          {prefs.footerTagline &&
+            (prefs.footerStyle === "ticker" ? (
+              <div className="w-full overflow-hidden">
+                <p
+                  className="rout-footer-ticker whitespace-nowrap text-[11px] tracking-widest"
+                  style={{ color: prefs.footerAccent ?? t.muted }}
+                >
+                  {`${prefs.footerTagline} \u00b7 `.repeat(6)}
+                </p>
+              </div>
+            ) : (
+              <p
+                className="text-center text-[11px]"
+                style={{ color: prefs.footerAccent ?? t.muted }}
+              >
+                {prefs.footerTagline}
+              </p>
+            ))}
           {showWatermark && (
             <a
               href="/about?ref=watermark"

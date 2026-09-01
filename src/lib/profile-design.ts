@@ -9,6 +9,8 @@ export type ButtonVariant = "fill" | "outline" | "glass" | "hard";
 export type ButtonRadius = "pill" | "rounded" | "sharp";
 export type FontPairing = "modern" | "serif" | "mono" | "display";
 export type SocialPosition = "top" | "bottom" | "footer";
+/** Vormgeving van de voettekst onderaan het profiel. */
+export type FooterStyle = "plain" | "divider" | "card" | "glow" | "stamp" | "ticker";
 
 export interface ProfileDesignPrefs {
   /** Custom mode: pas als dit aanstaat overschrijven de knoppen hieronder het preset. */
@@ -31,9 +33,67 @@ export interface ProfileDesignPrefs {
   fontScale: number;
   titleColor: string | null;
   footerTagline: string | null;
+  /** Stijl van het footerblok. */
+  footerStyle: FooterStyle;
+  /** Accentkleur voor de footer (lijn, gloed, stempelrand). */
+  footerAccent: string | null;
   /** "Powered by ROUT"-badge tonen (Pro-leden mogen dit uitzetten). */
   showRoutBadge: boolean;
   socialPosition: SocialPosition;
+}
+
+export const FOOTER_STYLES: { id: FooterStyle; label: string; hint: string }[] = [
+  { id: "plain", label: "Eenvoudig", hint: "Alleen tekst" },
+  { id: "divider", label: "Fijne lijn", hint: "Scheidingslijn boven" },
+  { id: "card", label: "Kaartje", hint: "Zacht kader" },
+  { id: "glow", label: "Gloed", hint: "Accentgloed" },
+  { id: "stamp", label: "Stempel", hint: "Uppercase kader" },
+  { id: "ticker", label: "Ticker", hint: "Rollende tekst" },
+];
+
+/** CSS voor het footerblok, afgeleid van stijl + accentkleur. */
+export function footerBlockStyle(
+  style: FooterStyle,
+  accent: string | null,
+  theme: { border: string; card: string; muted: string },
+): Record<string, string | number> {
+  const a = accent ?? theme.border;
+  switch (style) {
+    case "divider":
+      return { borderTop: `1px solid ${a}`, paddingTop: 16, width: "100%" };
+    case "card":
+      return {
+        border: `1px solid ${a}`,
+        background: theme.card,
+        borderRadius: 16,
+        padding: "12px 18px",
+      };
+    case "glow":
+      return {
+        borderRadius: 999,
+        padding: "10px 20px",
+        border: `1px solid ${a}`,
+        boxShadow: `0 0 28px -8px ${a}`,
+      };
+    case "stamp":
+      return {
+        border: `2px dashed ${a}`,
+        borderRadius: 8,
+        padding: "10px 18px",
+        textTransform: "uppercase",
+        letterSpacing: "0.18em",
+      };
+    case "ticker":
+      return {
+        borderTop: `1px solid ${a}`,
+        borderBottom: `1px solid ${a}`,
+        padding: "8px 0",
+        width: "100%",
+        overflow: "hidden",
+      };
+    default:
+      return {};
+  }
 }
 
 export const DEFAULT_DESIGN_PREFS: ProfileDesignPrefs = {
@@ -52,6 +112,8 @@ export const DEFAULT_DESIGN_PREFS: ProfileDesignPrefs = {
   fontScale: 100,
   titleColor: null,
   footerTagline: null,
+  footerStyle: "plain",
+  footerAccent: null,
   showRoutBadge: true,
   socialPosition: "top",
 };
@@ -367,6 +429,12 @@ export function normalizeDesignPrefs(r: Record<string, unknown>): ProfileDesignP
     fontScale: num(r["fontScale"], 85, 125, 100),
     titleColor: hex(r["titleColor"]),
     footerTagline: text(r["footerTagline"], 80),
+    footerStyle: pick(
+      r["footerStyle"],
+      ["plain", "divider", "card", "glow", "stamp", "ticker"] as const,
+      "plain",
+    ),
+    footerAccent: hex(r["footerAccent"]),
     showRoutBadge: r["showRoutBadge"] === undefined ? true : Boolean(r["showRoutBadge"]),
     socialPosition: pick(r["socialPosition"], ["top", "bottom", "footer"] as const, "top"),
   };
