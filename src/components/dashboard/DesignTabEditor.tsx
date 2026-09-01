@@ -20,6 +20,7 @@ import {
   BUTTON_RADII,
   BUTTON_VARIANTS,
   FONT_PAIRINGS,
+  FOOTER_STYLES,
   GRADIENT_PRESETS,
   ROUT_PRESETS,
   SOCIAL_POSITIONS,
@@ -381,6 +382,29 @@ export function DesignTabEditor({
               className="h-10 text-xs"
             />
           </div>
+          <div className="space-y-2">
+            <p className="input-label">Footerstijl</p>
+            <div className="flex flex-wrap gap-2">
+              {FOOTER_STYLES.map((o) => (
+                <Pill
+                  key={o.id}
+                  active={prefs.footerStyle === o.id}
+                  onClick={() => setPref("footerStyle", o.id)}
+                >
+                  {o.label}
+                </Pill>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {FOOTER_STYLES.find((o) => o.id === prefs.footerStyle)?.hint}
+            </p>
+          </div>
+          <ColorField
+            label="Footer-accent"
+            value={prefs.footerAccent}
+            onChange={(v) => setPref("footerAccent", v)}
+            placeholder={t.border}
+          />
           <div className="flex items-start justify-between gap-4 border-t border-border pt-4">
             <div className="min-w-0">
               <p className="text-sm font-medium">Toon &ldquo;Powered by ROUT&rdquo;-badge</p>

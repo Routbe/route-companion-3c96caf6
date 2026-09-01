@@ -1,4 +1,10 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { AvatarDecorationLayer } from "@/components/profile/AvatarDecorationLayer";
+import {
+  presenceDef,
+  type AvatarDecoration,
+  type PresenceStatus,
+} from "@/lib/avatar-decorations";
 import {
   avatarFrameDef,
   avatarFrameFallbackStyle,
@@ -148,11 +154,17 @@ export function AvatarFrameWrapper({
   theme,
   children,
   className = "",
+  decoration = "none",
+  presence = "none",
 }: {
   frame: AvatarFrame;
   theme: FrameTheme;
   children: ReactNode;
   className?: string;
+  /** Discord-achtige decoratie bovenop de avatar. */
+  decoration?: AvatarDecoration;
+  /** Statusbolletje rechtsonder. */
+  presence?: PresenceStatus;
 }) {
   const def = avatarFrameDef(frame);
   // SSR rendert altijd het volledige kader; na hydratatie schakelen trage
@@ -164,6 +176,7 @@ export function AvatarFrameWrapper({
   }, []);
 
   const style = light ? avatarFrameFallbackStyle(frame, theme) : avatarFrameStyle(frame, theme);
+  const status = presenceDef(presence);
   return (
     <div
       style={style}
@@ -171,6 +184,29 @@ export function AvatarFrameWrapper({
     >
       {children}
       {!light && <FrameOverlay overlay={def.overlay ?? null} />}
+      {!light && <AvatarDecorationLayer decoration={decoration} />}
+      {presence !== "none" && (
+        <span
+          title={status.label}
+          aria-label={status.label}
+          className="absolute bottom-0 right-0 h-[26%] w-[26%] min-h-3 min-w-3 rounded-full"
+          style={{ background: status.color, boxShadow: `0 0 0 3px ${theme.bg}` }}
+        >
+          {presence === "dnd" && (
+            <span
+              className="absolute left-1/2 top-1/2 h-[2px] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ background: theme.bg }}
+            />
+          )}
+          {presence === "idle" && (
+            <span
+              className="absolute left-[18%] top-[8%] h-[70%] w-[70%] rounded-full"
+              style={{ background: theme.bg }}
+            />
+          )}
+        </span>
+      )}
     </div>
   );
 }
+

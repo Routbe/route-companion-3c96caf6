@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { FileUploadInput } from "@/components/FileUploadInput";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { AvatarFramePicker } from "@/components/studio/AvatarFramePicker";
+import { AvatarDecorationPicker } from "@/components/studio/AvatarDecorationPicker";
 import { FaviconUploader } from "@/components/studio/FaviconUploader";
 import { VisitEffectPicker } from "@/components/studio/VisitEffectPicker";
 import { DesignTabEditor } from "@/components/dashboard/DesignTabEditor";
@@ -125,6 +126,22 @@ export function ProfileThemePicker({
               value={prefs.avatarFrame}
               onChange={(f) => setPref("avatarFrame", f)}
               avatarUrl={avatarUrl}
+              theme={themeOf(theme)}
+            />
+          </div>
+
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="input-label">Avatardecoratie &amp; status</p>
+            <p className="text-xs text-muted-foreground">
+              Oortjes, halo, koptelefoon &hellip; bovenop je avatar, plus een statusbolletje.
+            </p>
+            <AvatarDecorationPicker
+              value={prefs.avatarDecoration}
+              onChange={(d) => setPref("avatarDecoration", d)}
+              presence={prefs.presence}
+              onPresenceChange={(v) => setPref("presence", v)}
+              avatarUrl={avatarUrl}
+              frame={prefs.avatarFrame}
               theme={themeOf(theme)}
             />
           </div>
