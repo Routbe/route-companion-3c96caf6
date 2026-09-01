@@ -660,10 +660,13 @@ export function designButtonStyle(
   theme: { bg: string; card: string; text: string; border: string; accent?: string },
 ): Record<string, string | number> | null {
   if (!d.customDesign) return null;
-  const radius = (BUTTON_RADII.find((r) => r.id === d.buttonRadius) ?? BUTTON_RADII[1]!).px;
+  const radius = (BUTTON_RADII.find((r) => r.id === d.buttonRadius) ?? BUTTON_RADII[2]!).px;
   const accent = d.buttonColor ?? theme.accent ?? theme.card;
   const text = d.buttonTextColor ?? theme.text;
-  const base: Record<string, string | number> = { borderRadius: radius };
+  const base: Record<string, string | number> = {
+    borderRadius: radius,
+    ...buttonSizeStyle(d.buttonSize),
+  };
   switch (d.buttonVariant) {
     case "outline":
       return { ...base, background: "transparent", color: text, border: `1px solid ${accent}` };
@@ -683,6 +686,36 @@ export function designButtonStyle(
         border: `2px solid ${theme.text}`,
         boxShadow: `4px 4px 0px ${theme.text}`,
       };
+    case "soft":
+      return {
+        ...base,
+        background: accent,
+        color: d.buttonTextColor ?? theme.bg,
+        border: "1px solid transparent",
+        boxShadow: `0 14px 34px -16px ${accent}, 0 2px 6px -2px rgba(0,0,0,.25)`,
+      };
+    case "gradient":
+      return {
+        ...base,
+        backgroundImage: `linear-gradient(135deg, ${accent}, color-mix(in oklab, ${accent} 40%, ${theme.text}))`,
+        color: d.buttonTextColor ?? theme.bg,
+        border: "1px solid transparent",
+      };
+    case "neon":
+      return {
+        ...base,
+        background: `color-mix(in oklab, ${accent} 12%, transparent)`,
+        color: text,
+        border: `1px solid ${accent}`,
+        boxShadow: `0 0 0 1px color-mix(in oklab, ${accent} 25%, transparent), 0 10px 32px -10px ${accent}`,
+      };
+    case "ghost":
+      return {
+        ...base,
+        background: "transparent",
+        color: text,
+        border: "1px solid transparent",
+      };
     default:
       return {
         ...base,
@@ -692,6 +725,7 @@ export function designButtonStyle(
       };
   }
 }
+
 
 /* --------------------------------------------------------- normalizer */
 
