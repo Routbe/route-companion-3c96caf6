@@ -22,6 +22,9 @@ export const ALIAS_MIN_DIGITS = 2;
 /** Aliassen zijn minstens zo lang — korter is te raadbaar. */
 export const ALIAS_MIN_LENGTH = 5;
 
+/** …en dragen altijd minstens drie letters (cijfers zijn onbeperkt). */
+export const ALIAS_MIN_LETTERS = 3;
+
 export const MSG_CHARSET =
   "❗ Deze gebruikersnaam bevat niet-toegestane tekens (gebruik enkel kleine letters, cijfers, . _ -)";
 export const MSG_LENGTH = "❗ Een gebruikersnaam telt tussen 3 en 30 tekens.";
@@ -30,7 +33,7 @@ export const MSG_EDGES = "❗ Een gebruikersnaam begint en eindigt met een lette
 export const MSG_RESERVED =
   "❗ Deze naam is een gereserveerd systeemwoord en kan niet geclaimd worden.";
 export const MSG_ALIAS_DIGITS =
-  "❗ Een privacy-alias moet minstens 5 tekens en minstens 2 cijfers bevatten (bijv. jona50).";
+  "❗ Een privacy-alias moet minstens 5 tekens, 3 letters en 2 cijfers bevatten (bijv. jona50). Meer cijfers mag.";
 
 /** Vriendelijkere variant voor het aliasformulier zelf. */
 export const ALIAS_DIGITS_HINT = MSG_ALIAS_DIGITS;
@@ -58,7 +61,9 @@ export function strictHandleIssue(raw: string, options: StrictHandleOptions = {}
   if (isReservedSlug(handle) || EXTRA_RESERVED.has(handle)) return MSG_RESERVED;
   if (
     options.alias &&
-    (handle.length < ALIAS_MIN_LENGTH || (handle.match(/[0-9]/g) ?? []).length < ALIAS_MIN_DIGITS)
+    (handle.length < ALIAS_MIN_LENGTH ||
+      (handle.match(/[0-9]/g) ?? []).length < ALIAS_MIN_DIGITS ||
+      (handle.match(/[a-z]/g) ?? []).length < ALIAS_MIN_LETTERS)
   ) {
     return MSG_ALIAS_DIGITS;
   }

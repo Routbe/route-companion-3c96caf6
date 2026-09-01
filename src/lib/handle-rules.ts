@@ -24,6 +24,12 @@ export const HANDLE_MIN = 5;
 /** Free accounts must carry at least this many digits (anti-squatting rule). */
 export const FREE_HANDLE_MIN_DIGITS = 2;
 
+/**
+ * …en altijd minstens drie letters, zodat een gratis handle leesbaar blijft.
+ * Er staat géén bovengrens op het aantal cijfers: `jona12345` mag.
+ */
+export const FREE_HANDLE_MIN_LETTERS = 3;
+
 export type HandleTier = "free" | "verified";
 
 export interface HandleRuleContext {
@@ -41,7 +47,7 @@ export interface HandleRuleContext {
 }
 
 export const FREE_HANDLE_MESSAGE =
-  "Gratis handles hebben minstens 5 tekens en minstens 2 cijfers nodig (bijv. jona26). Verifieer je account voor een strakke handle zonder cijfers.";
+  "Gratis handles hebben minstens 5 tekens, minstens 3 letters en minstens 2 cijfers nodig (bijv. jona26). Meer cijfers mag. Verifieer je account voor een strakke handle zonder cijfers.";
 
 export const VERIFIED_MIN_MESSAGE = "Handles moeten minstens 5 tekens lang zijn.";
 
@@ -52,6 +58,11 @@ export function hasDigit(handle: string): boolean {
 /** How many digits a handle contains — free handles need at least two. */
 export function digitCount(handle: string): number {
   return (handle.match(/[0-9]/g) ?? []).length;
+}
+
+/** How many letters a handle contains — free handles need at least three. */
+export function letterCount(handle: string): number {
+  return (handle.match(/[a-z]/g) ?? []).length;
 }
 
 /** Lowercase letters, digits and the separators `.`, `-`, `_`; never at the edges. */
@@ -150,6 +161,7 @@ export function handleRuleMessage(handle: string, ctx: HandleRuleContext = {}): 
 
   if (tier === "free") {
     if (digitCount(clean) < FREE_HANDLE_MIN_DIGITS) return FREE_HANDLE_MESSAGE;
+    if (letterCount(clean) < FREE_HANDLE_MIN_LETTERS) return FREE_HANDLE_MESSAGE;
     return null;
   }
 
