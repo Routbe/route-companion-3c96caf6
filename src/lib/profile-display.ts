@@ -10,7 +10,23 @@
 export type BadgeType = "verified" | "human";
 export type BadgeNameFormat = "full" | "initials" | "lower";
 export type IdentityMode = "legal" | "private";
-export type BackgroundStyle = "solid" | "grid" | "gradient" | "dots" | "mesh" | "noise";
+export type BackgroundStyle =
+  | "solid"
+  | "grid"
+  | "gradient"
+  | "dots"
+  | "mesh"
+  | "noise"
+  | "waves"
+  | "topography"
+  | "circuit"
+  | "aurora"
+  | "carbon"
+  | "stripes"
+  | "honeycomb"
+  | "blueprint"
+  | "stars"
+  | "spotlight";
 export type Typography = "sans" | "serif" | "mono";
 /** 24 avatarkaders — definities leven in `@/lib/avatar-frames`. */
 export type { AvatarFrame } from "./avatar-frames";
@@ -61,7 +77,19 @@ export type BannerDirection =
   | "to top right"
   | "to top left"
   | "radial";
-export type NameAccent = "classic" | "gold" | "neon" | "chrome";
+export type NameAccent =
+  | "classic"
+  | "gold"
+  | "neon"
+  | "chrome"
+  | "sunset"
+  | "ocean"
+  | "emerald"
+  | "candy"
+  | "fire"
+  | "silver"
+  | "rainbow"
+  | "outline";
 
 export interface ProfileDisplayPrefs {
   /** "legal" = handle blijft herleidbaar naar de wettelijke naam. */
@@ -82,6 +110,10 @@ export interface ProfileDisplayPrefs {
   avatarDecoration: AvatarDecoration;
   /** Statusbolletje op de avatar (online, afwezig, focus …). */
   presence: PresenceStatus;
+  /** Discord-achtige aangepaste status (korte tekst naast het bolletje). */
+  presenceText: string | null;
+  /** Emoji voor de aangepaste status. */
+  presenceEmoji: string | null;
   bannerStyle: BannerStyle;
   bannerImageUrl: string | null;
   /** Kleurenpaar voor de gradient-banner. */
@@ -132,6 +164,8 @@ export const DEFAULT_DISPLAY_PREFS: ProfileDisplayPrefs = {
   avatarFrame: "none",
   avatarDecoration: "none",
   presence: "none",
+  presenceText: null,
+  presenceEmoji: null,
   bannerStyle: "none",
   bannerImageUrl: null,
   bannerFrom: null,
@@ -187,6 +221,14 @@ export const NAME_ACCENTS: { id: NameAccent; label: string }[] = [
   { id: "gold", label: "Goud verloop" },
   { id: "neon", label: "Neon glow" },
   { id: "chrome", label: "Dark chrome" },
+  { id: "sunset", label: "Sunset" },
+  { id: "ocean", label: "Ocean" },
+  { id: "emerald", label: "Emerald" },
+  { id: "candy", label: "Candy" },
+  { id: "fire", label: "Fire" },
+  { id: "silver", label: "Zilver" },
+  { id: "rainbow", label: "Regenboog" },
+  { id: "outline", label: "Outline" },
 ];
 
 export const BADGE_TYPES: { id: BadgeType; label: string; note: string }[] = [
@@ -215,6 +257,16 @@ export const BACKGROUND_STYLES: { id: BackgroundStyle; label: string }[] = [
   { id: "dots", label: "Dot matrix" },
   { id: "mesh", label: "Mesh gradient" },
   { id: "noise", label: "Subtiele ruis" },
+  { id: "waves", label: "Golven" },
+  { id: "topography", label: "Hoogtelijnen" },
+  { id: "circuit", label: "Circuit" },
+  { id: "aurora", label: "Aurora" },
+  { id: "carbon", label: "Carbon" },
+  { id: "stripes", label: "Diagonale strepen" },
+  { id: "honeycomb", label: "Honingraat" },
+  { id: "blueprint", label: "Blauwdruk" },
+  { id: "stars", label: "Sterrenhemel" },
+  { id: "spotlight", label: "Spotlight" },
 ];
 
 export const TYPOGRAPHY_STYLES: { id: Typography; label: string }[] = [
@@ -257,13 +309,15 @@ export function parseDisplayPrefs(raw: unknown): ProfileDisplayPrefs {
         : Boolean(r["showWatermark"]),
     backgroundStyle: oneOf(
       r["backgroundStyle"],
-      ["solid", "grid", "gradient", "dots", "mesh", "noise"] as const,
+      BACKGROUND_STYLES.map((o) => o.id),
       "solid",
     ),
     typography: oneOf(r["typography"], ["sans", "serif", "mono"] as const, "sans"),
     avatarFrame: normalizeAvatarFrame(r["avatarFrame"]),
     avatarDecoration: normalizeAvatarDecoration(r["avatarDecoration"]),
     presence: normalizePresence(r["presence"]),
+    presenceText: textOrNull(r["presenceText"], 60),
+    presenceEmoji: textOrNull(r["presenceEmoji"], 8),
     bannerStyle: oneOf(r["bannerStyle"], ["none", "gradient", "image"] as const, "none"),
     bannerImageUrl: urlOrNull(r["bannerImageUrl"]),
     bannerFrom: colorOrNull(r["bannerFrom"]),
@@ -286,7 +340,11 @@ export function parseDisplayPrefs(raw: unknown): ProfileDisplayPrefs {
     canvasColor: colorOrNull(r["canvasColor"]),
     patternColor: colorOrNull(r["patternColor"]),
     statusLine: textOrNull(r["statusLine"], 60),
-    nameAccent: oneOf(r["nameAccent"], ["classic", "gold", "neon", "chrome"] as const, "classic"),
+    nameAccent: oneOf(
+      r["nameAccent"],
+      NAME_ACCENTS.map((o) => o.id),
+      "classic",
+    ),
     metaTitle: textOrNull(r["metaTitle"], 70),
     metaDescription: textOrNull(r["metaDescription"], 200),
     ogImageUrl: urlOrNull(r["ogImageUrl"]),
@@ -351,6 +409,60 @@ export function nameAccentStyle(
         backgroundClip: "text",
         WebkitBackgroundClip: "text",
         color: "transparent",
+      };
+    case "sunset":
+      return {
+        backgroundImage: "linear-gradient(100deg,#ff9a5a,#ff5f6d 55%,#c2417f)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "ocean":
+      return {
+        backgroundImage: "linear-gradient(100deg,#5cbdb9,#2d8a9e 50%,#1e3a5f)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "emerald":
+      return {
+        backgroundImage: "linear-gradient(100deg,#a7f3d0,#22c55e 50%,#064e3b)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "candy":
+      return {
+        backgroundImage: "linear-gradient(100deg,#c4b5fd,#f472b6 50%,#67e8f9)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "fire":
+      return {
+        backgroundImage: "linear-gradient(100deg,#fcd34d,#f97316 45%,#b91c1c)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "silver":
+      return {
+        backgroundImage: "linear-gradient(180deg,#ffffff,#cbd5e1 45%,#64748b)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "rainbow":
+      return {
+        backgroundImage: "linear-gradient(100deg,#ef4444,#f59e0b,#22c55e,#3b82f6,#a855f7)",
+        backgroundClip: "text",
+        WebkitBackgroundClip: "text",
+        color: "transparent",
+      };
+    case "outline":
+      return {
+        color: "transparent",
+        WebkitTextStroke: `1px ${theme.text}`,
       };
     default:
       return { color: theme.text };
@@ -417,6 +529,47 @@ export function backgroundLayers(
     case "noise":
       return {
         background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E"), ${theme.bg}`,
+      };
+    case "waves":
+      return {
+        background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cpath d='M0 20c15-14 30-14 45 0s30 14 45 0 30-14 45 0' fill='none' stroke='${encodeURIComponent(theme.border)}' stroke-width='1.2'/%3E%3C/svg%3E") 0 0 / 120px 40px, ${theme.bg}`,
+      };
+    case "topography":
+      return {
+        background: `radial-gradient(circle at 50% 50%, transparent 38%, ${theme.border} 39%, transparent 40%) 0 0 / 90px 90px, radial-gradient(circle at 50% 50%, transparent 26%, ${theme.border} 27%, transparent 28%) 45px 45px / 90px 90px, ${theme.bg}`,
+      };
+    case "circuit":
+      return {
+        background: `linear-gradient(${theme.border} 1px, transparent 1px) 0 0 / 48px 48px, linear-gradient(90deg, ${theme.border} 1px, transparent 1px) 0 0 / 48px 48px, radial-gradient(${accent} 2px, transparent 2px) 0 0 / 48px 48px, ${theme.bg}`,
+      };
+    case "aurora":
+      return {
+        background: `radial-gradient(40rem 26rem at 18% 0%, ${accent}55, transparent 62%), radial-gradient(42rem 28rem at 82% 18%, ${theme.card}, transparent 60%), radial-gradient(36rem 24rem at 50% 96%, ${accent}33, transparent 64%), ${theme.bg}`,
+      };
+    case "carbon":
+      return {
+        background: `repeating-linear-gradient(45deg, ${theme.card} 0 6px, ${theme.bg} 6px 12px)`,
+      };
+    case "stripes":
+      return {
+        background: `repeating-linear-gradient(135deg, ${theme.card} 0 14px, ${theme.bg} 14px 28px)`,
+      };
+    case "honeycomb":
+      return {
+        background: `radial-gradient(circle farthest-side at 0% 50%, ${theme.bg} 23.5%, transparent 0) 21px 30px / 42px 60px, radial-gradient(circle farthest-side at 0% 50%, ${theme.border} 24%, transparent 0) 19px 30px / 42px 60px, ${theme.bg}`,
+      };
+    case "blueprint":
+      return {
+        background: `linear-gradient(${accent}33 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, ${accent}33 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(${accent}22 1px, transparent 1px) 0 0 / 120px 120px, linear-gradient(90deg, ${accent}22 1px, transparent 1px) 0 0 / 120px 120px, ${theme.bg}`,
+      };
+    case "stars":
+      return {
+        background: `radial-gradient(1.4px 1.4px at 20% 30%, ${theme.text}, transparent), radial-gradient(1.2px 1.2px at 70% 20%, ${theme.text}, transparent), radial-gradient(1.6px 1.6px at 40% 70%, ${theme.text}, transparent), radial-gradient(1.2px 1.2px at 85% 65%, ${theme.text}, transparent), ${theme.bg}`,
+        backgroundSize: "220px 220px",
+      };
+    case "spotlight":
+      return {
+        background: `radial-gradient(50rem 34rem at 50% -10%, ${accent}44, transparent 65%), ${theme.bg}`,
       };
     default:
       return { background: theme.bg };
